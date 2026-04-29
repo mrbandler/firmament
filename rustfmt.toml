@@ -1,0 +1,21 @@
+# Rustfmt configuration for Firmament
+# https://rust-lang.github.io/rustfmt/
+
+edition = "2021"
+
+# Formatting style
+max_width = 120
+tab_spaces = 4
+hard_tabs = false
+newline_style = "Auto"
+
+# Imports
+reorder_imports = true
+reorder_modules = true
+
+# Misc
+fn_params_layout = "Tall"
+match_block_trailing_comma = true
+use_field_init_shorthand = true
+use_try_shorthand = true
+chain_width = 60

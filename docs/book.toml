@@ -1,0 +1,45 @@
+# mdBook configuration for Firmament documentation
+# https://rust-lang.github.io/mdBook/
+
+[book]
+title = "Firmament Book"
+authors = ["mrbandler"]
+description = "Documentation for Firmament"
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+create-missing = true
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+smart-punctuation = true
+git-repository-url = "https://github.com/mrbandler/firmament"
+edit-url-template = "https://github.com/mrbandler/firmament/edit/main/docs/{path}"
+
+[output.html.fold]
+enable = true
+level = 1
+
+[output.html.playground]
+editable = true
+copyable = true
+copy-js = true
+line-numbers = true
+runnable = false
+
+[output.html.search]
+enable = true
+limit-results = 30
+teaser-word-count = 30
+copy-js = true
+
+[output.html.code.hidelines]
+rust = "# "
+
+# Preprocessors
+[preprocessor.links]
+
+[preprocessor.index]

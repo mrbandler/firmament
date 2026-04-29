@@ -1,0 +1,19 @@
+[package]
+name = "firmament-core"
+description = "Host-side runtime for the Firmament virtual MCU, including the WASM executor, cycle budget, MMIO, and interrupt handling"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+bon.workspace = true
+miette.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tokio = { version = "1.52.1", features = ["rt", "rt-multi-thread", "sync", "macros"] }
+wasmtime = "43.0.1"
+
+[lints]
+workspace = true

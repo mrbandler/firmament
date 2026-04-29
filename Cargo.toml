@@ -1,0 +1,30 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+exclude = ["examples/blink"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Michael Baudler <hello@mrbandler.dev>"]
+license = "MIT"
+repository = "https://github.com/mrbandler/firmament"
+homepage = "https://github.com/mrbandler/firmament"
+readme = "README.md"
+keywords = ["embedded", "simulation", "wasm", "mcu", "education"]
+categories = ["simulation", "embedded", "wasm"]
+rust-version = "1.85"
+
+[workspace.dependencies]
+bon = "3.6.3"
+miette = { version = "7.6.0", features = ["fancy"] }
+thiserror = "2.0.18"
+tracing = "0.1"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
