@@ -36,25 +36,14 @@ The firmware runs as a real bare-metal program. It exports `_start`, the host ca
 
 KSP/KSA or a test harness sit on the other side of the register interface. The host maps ADC channels to vessel sensors, GPIO pins to pyrotechnics, CAN bus addresses to engines and reaction wheels. The firmware never touches the game directly, it reads and writes registers and the host translates.
 
-```
-┌─────────────────────┐     ┌──────────────────────┐
-│   Your Firmware     │     │   Game / Physics     │
-│   (WASM binary)     │     │                      │
-│                     │     │  Orbital mechanics   │
-│  Reads registers    │◄───►│  Atmospheric flight  │
-│  Writes registers   │     │  Thermal model       │
-│  Handles interrupts │     │  CommNet             │
-│                     │     │                      │
-└────────┬────────────┘     └───────────┬──────────┘
-         │                              │
-         │  WASM imports                │  Host maps
-         │  (read/write volatile)       │  registers ↔ vessel
-         │                              │
-      ┌──▼──────────────────────────────▼──┐
-      │           Virtual MCU              │
-      │                                    │
-      │  MMIO  ·  NVIC  ·  Timers  · Buses │
-      └────────────────────────────────────┘
+```mermaid
+graph TB
+    FW["Your Firmware<br/>(WASM binary)<br/><br/>Reads registers<br/>Writes registers<br/>Handles interrupts"]
+    GP["Game / Physics<br/><br/>Orbital mechanics<br/>Atmospheric flight<br/>Thermal model<br/>CommNet"]
+    MCU["Virtual MCU<br/><br/>MMIO · NVIC · Timers · Buses"]
+
+    FW <-->|"WASM imports<br/>(read/write volatile)"| MCU
+    GP <-->|"Host maps<br/>registers ↔ vessel"| MCU
 ```
 
 ## Features
