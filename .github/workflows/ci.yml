@@ -37,6 +37,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+          targets: wasm32-unknown-unknown
 
       - name: Cache cargo registry
         uses: actions/cache@v5
@@ -49,6 +50,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-clippy-
             ${{ runner.os }}-cargo-
+
+      - name: Build blink firmware (WASM)
+        run: cargo build --manifest-path examples/blink/Cargo.toml --target wasm32-unknown-unknown --release
 
       - name: Run Clippy
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
@@ -75,6 +79,8 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
 
       - name: Cache cargo registry
         uses: actions/cache@v5
@@ -88,6 +94,9 @@ jobs:
             ${{ runner.os }}-cargo-test-
             ${{ runner.os }}-cargo-
 
+      - name: Build blink firmware (WASM)
+        run: cargo build --manifest-path examples/blink/Cargo.toml --target wasm32-unknown-unknown --release
+
       - name: Run tests
         run: cargo test --workspace --all-features
 
@@ -100,6 +109,8 @@ jobs:
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
 
       - name: Cache cargo registry
         uses: actions/cache@v5
@@ -112,6 +123,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-docs-
             ${{ runner.os }}-cargo-
+
+      - name: Build blink firmware (WASM)
+        run: cargo build --manifest-path examples/blink/Cargo.toml --target wasm32-unknown-unknown --release
 
       - name: Build documentation
         run: cargo doc --workspace --all-features --no-deps
