@@ -4,7 +4,7 @@ use std::{ops::Range, time::Duration};
 
 use firmament_core::{
     error::{BusError, DeviceError, McuError},
-    mcu,
+    firmament::Firmament,
     traits::{
         Addressable, Advanceable, Bus, Device, InterruptController, Mcu, Read, ResetKind, Resettable, Spec, Write,
     },
@@ -252,9 +252,12 @@ const BLINK_WASM: &[u8] = include_bytes!("../../../examples/blink/target/wasm32-
 #[tokio::test]
 async fn blink_firmware_boots_and_toggles_gpio() {
     let mcu = MockMcu::new();
-    let handle = mcu::Handle::builder()
-        .firmware(BLINK_WASM)
-        .mcu(mcu)
+    let handle = Firmament::new()
+        .system("test-sys")
+        .build()
+        .mcu("test-mcu")
+        .image(BLINK_WASM)
+        .device(mcu)
         .build()
         .expect("failed to spawn MCU");
 
@@ -262,7 +265,7 @@ async fn blink_firmware_boots_and_toggles_gpio() {
 
     // Simulate 10 ticks at 50Hz (20ms each).
     // Each tick wakes the firmware from wfi, it toggles GPIO and calls wfi again.
-    for i in 0..10 {
+    for _i in 0..10 {
         handle
             .tick(Duration::from_millis(20))
             .await
@@ -279,7 +282,6 @@ async fn blink_firmware_boots_and_toggles_gpio() {
         // The firmware starts with toggle=0, then XORs with 1 each iteration.
         // Tick 0 wakes after the first wfi (toggle was already set to 1 on boot).
         // Each subsequent tick triggers another toggle.
-        println!("tick {i}: GPIO ODR = {val}");
         assert!(val == 0 || val == 1, "unexpected GPIO ODR value: {val}");
     }
 }

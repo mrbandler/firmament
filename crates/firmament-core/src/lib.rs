@@ -5,6 +5,9 @@
 //! and debug facilities.
 
 pub mod error;
+pub mod firmament;
+pub mod logging;
 pub mod mcu;
+pub mod system;
 pub mod traits;
 pub mod volatile_access;

@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Structured logging via `tracing` with namespaced targets
+  - `firmware`, `runtime`, `hardware` log targets
+  - `LogHandler` trait for custom log routing
+  - `LogRouter` as single tracing `Layer` dispatching to registered handlers
+  - `StdOutLogHandler` default handler with `[LEVEL] (system/mcu) target: msg` format
+  - `LogContext` type for structured log metadata
+- `Firmament` top-level entry point
+  - Owns logging infrastructure, installs global tracing subscriber
+  - Factory for `System` instances via builder pattern
+- `System` named MCU group
+  - Default `LogHandler` inherited by MCUs unless overridden
+  - Factory for `Handle` instances via builder pattern
+- `firmament-fm` `println!` and `print!` macros for firmware-side logging
+  - Replaces `debug_log` with `log` host import
+  - `LogWriter` using `core::fmt::Write` for format string support
+- MCU identity span scoping via `tracing::Instrument`
+  - Each executor task runs inside an `mcu` span with system and MCU name fields
+- Runtime lifecycle logging (firmware boot, clean exit, halt, reset, shutdown)
+- Hardware event logging (WFI sleep/wake, IRQ preemption, ISR enter/exit)
+
 - Virtual MCU runtime with cycle-accurate budget execution
   - WASM-based firmware loading and linking via Wasmtime
   - Cycle budget system with configurable compute-per-cycle ratios

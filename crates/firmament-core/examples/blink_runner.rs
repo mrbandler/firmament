@@ -2,7 +2,7 @@ use std::{ops::Range, time::Duration};
 
 use firmament_core::{
     error::{BusError, DeviceError, McuError},
-    mcu,
+    firmament::Firmament,
     traits::{
         Addressable, Advanceable, Bus, Device, InterruptController, Mcu, Read, ResetKind, Resettable, Spec, Write,
     },
@@ -238,33 +238,28 @@ const BLINK_WASM: &[u8] = include_bytes!("../../../examples/blink/target/wasm32-
 #[tokio::main]
 async fn main() {
     let mcu = MockMcu::new();
-    let handle = mcu::Handle::builder()
-        .firmware(BLINK_WASM)
-        .mcu(mcu)
+    let handle = Firmament::new()
+        .system("example-sys")
+        .build()
+        .mcu("example-mcu")
+        .image(BLINK_WASM)
+        .device(mcu)
         .build()
         .expect("failed to spawn MCU");
 
     handle.power_on().await.expect("failed to power on MCU");
 
-    println!("--- Blink runner started, sending ticks at 50Hz ---");
-
     loop {
-        println!("--- sending tick ---");
-
         handle
             .tick(Duration::from_millis(20))
             .await
             .expect("tick failed");
 
-        println!("--- tick processed ---");
-
         tokio::task::yield_now().await;
 
-        let val: u32 = handle
+        let _val: u32 = handle
             .read(0x4000_0014_u32)
             .await
             .expect("read GPIO ODR failed");
-
-        println!("GPIO ODR = {val}");
     }
 }

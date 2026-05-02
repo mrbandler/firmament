@@ -30,8 +30,8 @@ extern "C" {
     #[link_name = "wfi"]
     fn _wfi();
 
-    #[link_name = "debug_log"]
-    fn _debug_log(ptr: u32, len: u32);
+    #[link_name = "log"]
+    fn _log(ptr: u32, len: u32);
 }
 
 /// Width-dispatched volatile memory access.
@@ -97,7 +97,37 @@ pub fn wfi() {
     unsafe { _wfi() }
 }
 
-/// Sends a UTF-8 message to the host's debug console.
-pub fn debug_log(msg: &str) {
-    unsafe { _debug_log(msg.as_ptr() as u32, msg.len() as u32) }
+/// Internal writer that forwards formatted output to the host via the
+/// `log` import. Not part of the public API.
+#[doc(hidden)]
+pub struct LogWriter;
+
+impl core::fmt::Write for LogWriter {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        // The host import traps on error (OOM, poisoned lock), which is
+        // unrecoverable in WASM — the instance aborts. Returning Ok(())
+        // is correct because we never reach this line after a trap.
+        unsafe { _log(s.as_ptr() as u32, s.len() as u32) };
+        Ok(())
+    }
+}
+
+/// Prints a formatted line to the host's log output.
+#[macro_export]
+macro_rules! println {
+    ($($arg:tt)*) => {{
+        use core::fmt::Write;
+        let mut w = $crate::LogWriter;
+        let _ = core::writeln!(w, $($arg)*);
+    }};
+}
+
+/// Prints formatted output to the host's log output (no trailing newline).
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {{
+        use core::fmt::Write;
+        let mut w = $crate::LogWriter;
+        let _ = core::write!(w, $($arg)*);
+    }};
 }

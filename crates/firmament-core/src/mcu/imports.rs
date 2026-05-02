@@ -5,10 +5,12 @@
 #![expect(clippy::cast_possible_truncation)]
 
 use std::str;
+use tracing::info;
 use wasmtime::{Caller, Error};
 
 use crate::{
     error::RuntimeError,
+    logging::target,
     mcu::{
         mmio::{Read, Write},
         runtime::Runtime,
@@ -23,11 +25,7 @@ pub fn trap(err: impl Into<RuntimeError>) -> wasmtime::Error {
 
 // --- Debug ---
 
-pub async fn debug_log<M: Mcu + Send + 'static>(
-    mut caller: Caller<'_, Runtime<M>>,
-    ptr: u32,
-    len: u32,
-) -> Result<(), Error> {
+pub async fn log<M: Mcu + Send + 'static>(mut caller: Caller<'_, Runtime<M>>, ptr: u32, len: u32) -> Result<(), Error> {
     Runtime::<M>::meter(&mut caller).map_err(trap)?;
 
     let memory = caller
@@ -47,7 +45,8 @@ pub async fn debug_log<M: Mcu + Send + 'static>(
 
     let msg = str::from_utf8(slice).map_err(|e| trap(RuntimeError::InvalidArgument(e.to_string())))?;
 
-    println!("[DEBUG] {msg}");
+    info!(target: target::FIRMWARE, message = msg);
+
     Ok(())
 }
 

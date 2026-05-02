@@ -106,6 +106,13 @@ pub enum McuError {
     Custom(Box<dyn Error + Send + Sync>),
 }
 
+/// Errors from the logging infrastructure.
+#[derive(Debug, Error, Diagnostic)]
+pub enum LogError {
+    #[error("log: handler lock poisoned")]
+    LockPoisoned,
+}
+
 /// Errors from the WASM runtime, firmware execution, and executor lifecycle.
 #[derive(Debug, Error, Diagnostic)]
 pub enum RuntimeError {
@@ -151,3 +158,16 @@ pub enum RuntimeError {
 }
 
 impl_custom!(McuError, BusError, DeviceError, ReadError, WriteError, RuntimeError);
+
+/// Top-level errors from the Firmament API.
+#[derive(Debug, Error, Diagnostic)]
+pub enum FirmamentError {
+    #[error(transparent)]
+    Runtime(#[from] RuntimeError),
+
+    #[error(transparent)]
+    Log(#[from] LogError),
+
+    #[error("firmament: lock poisoned: {0}")]
+    LockPoisoned(String),
+}

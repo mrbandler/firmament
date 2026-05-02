@@ -1,14 +1,14 @@
 #![no_std]
 #![no_main]
 
-use firmament_fm::{debug_log, read_volatile, wfi, write_volatile};
+use firmament_fm::*;
 
 const GPIO_PORT0_ODR: *mut u32 = 0x4000_0014 as *mut u32;
 const GPIO_PORT0_IDR: *const u32 = 0x4000_0010 as *const u32;
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    debug_log("firmware booted");
+    println!("firmware booted");
 
     let mut toggle: u32 = 0;
     loop {
@@ -19,9 +19,9 @@ pub extern "C" fn _start() -> ! {
         let _ = val; // read-back, host printed it
 
         if toggle == 1 {
-            debug_log("LED on");
+            println!("LED on");
         } else {
-            debug_log("LED off");
+            println!("LED off");
         }
 
         // wfi();
@@ -30,7 +30,7 @@ pub extern "C" fn _start() -> ! {
 
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
-    debug_log("PANIC");
+    println!("PANIC");
     loop {
         wfi();
     }

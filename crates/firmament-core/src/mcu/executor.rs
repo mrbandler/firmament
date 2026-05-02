@@ -2,6 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use crate::{
     error::RuntimeError,
+    logging::target,
     mcu::{
         budget::Budget,
         channels::ExecutorLink,
@@ -92,6 +93,8 @@ impl<M: Mcu + Send + 'static> Executor<M> {
 
     async fn run(&mut self) -> Transition {
         let _ = self.link.status_tx.send(Status::Running);
+        tracing::debug!(target: target::RUNTIME, "firmware booting");
+
         let mut firmware = match self.boot_firmware().await {
             Ok(fw) => fw,
             Err(err) => return Transition::Trap(err),
@@ -126,7 +129,10 @@ impl<M: Mcu + Send + 'static> Executor<M> {
                 }
                 result = &mut boot => {
                     return match result {
-                        Ok(()) => Transition::CleanExit,
+                        Ok(()) => {
+                            tracing::info!(target: target::RUNTIME, "firmware exited cleanly");
+                            Transition::CleanExit
+                        },
                         Err(err) => Transition::Trap(Self::unwrap(err)),
                     };
                 }
@@ -135,7 +141,7 @@ impl<M: Mcu + Send + 'static> Executor<M> {
     }
 
     async fn trap(&mut self, err: RuntimeError) -> Transition {
-        tracing::error!(%err, "firmware halted");
+        tracing::error!(target: target::RUNTIME, "firmware halted: {err}");
 
         let _ = self.link.status_tx.send(Status::Halted);
         let _ = self.link.error_tx.send(Some(Arc::new(err)));
@@ -194,6 +200,7 @@ impl<M: Mcu + Send + 'static> Executor<M> {
     }
 
     fn reset(&mut self, kind: ResetKind) -> Result<(), RuntimeError> {
+        tracing::info!(target: target::RUNTIME, "MCU reset ({kind:?})");
         {
             let mut state = self
                 .runtime
@@ -218,6 +225,7 @@ impl<M: Mcu + Send + 'static> Executor<M> {
     }
 
     fn shutdown(&self) {
+        tracing::info!(target: target::RUNTIME, "MCU shutdown");
         let _ = self.link.status_tx.send(Status::Off);
     }
 

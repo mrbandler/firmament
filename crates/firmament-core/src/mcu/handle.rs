@@ -3,6 +3,7 @@ use std::{
     time::Duration,
 };
 use tokio::sync::oneshot;
+use tracing::{Instrument, Span};
 
 use crate::{
     error::{ErrorHandle, RuntimeError},
@@ -41,10 +42,11 @@ pub enum Command {
 /// Public API for controlling an MCU simulation from external code.
 #[derive(Debug)]
 pub struct Handle {
+    system: String,
+    name: String,
     link: HandleLink,
 }
 
-#[bon::bon]
 impl Handle {
     /// Creates a new MCU simulation from WASM firmware bytes and an MCU instance.
     ///
@@ -55,22 +57,40 @@ impl Handle {
     ///
     /// Returns [`RuntimeError::CompilationError`] if the WASM bytes are invalid,
     /// or [`RuntimeError::LinkError`] if a required host import is missing.
-    #[builder]
-    pub fn new<M: Mcu + Send + 'static>(
-        firmware: &[u8],
+    pub(crate) fn new<M: Mcu + Send + 'static>(
+        system: impl Into<String>,
+        name: impl Into<String>,
+        config: Config,
+        image: &[u8],
         mcu: M,
-        #[builder(default)] config: Config,
+        span: Span,
     ) -> Result<Self, RuntimeError> {
         let channels = Channels::new(&config);
+        let handle = Self {
+            system: system.into(),
+            name: name.into(),
+            link: channels.handle,
+        };
+
         let state = Arc::new(Mutex::new(State::new(mcu)));
-        let handle = Self::from(channels.handle);
-        let image = Arc::new(Image::new(firmware, config.yield_interval)?);
+        let image = Arc::new(Image::new(image, config.yield_interval)?);
         let runtime = Runtime::new(Arc::clone(&state), channels.runtime);
         let executor = Executor::new(Arc::clone(&image), runtime, channels.executor);
 
-        tokio::spawn(executor.exec());
+        tokio::spawn(executor.exec().instrument(span));
 
         Ok(handle)
+    }
+
+    /// Returns the name of the MCU handle.
+    #[must_use]
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    #[must_use]
+    pub fn system(&self) -> &str {
+        &self.system
     }
 
     /// Returns the current MCU lifecycle status.
@@ -211,10 +231,6 @@ impl Handle {
             .await
             .map_err(|_| self.resolve())?;
         rx.await.map_err(|_| self.resolve())?
-    }
-
-    const fn from(link: HandleLink) -> Self {
-        Self { link }
     }
 
     fn resolve(&self) -> RuntimeError {

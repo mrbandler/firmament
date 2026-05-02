@@ -5,6 +5,7 @@ use wasmtime::{Caller, Extern};
 
 use crate::{
     error::RuntimeError,
+    logging::target,
     mcu::{channels::RuntimeLink, mmio::Mmio, state::StateRef},
     traits::Mcu,
 };
@@ -66,6 +67,7 @@ impl<M: Mcu + Send + 'static> Runtime<M> {
         };
 
         if let Some(irq) = preempt {
+            tracing::debug!(target: target::HARDWARE, "IRQ {irq} preempting");
             Runtime::<M>::interrupt(caller, irq).await?;
         }
 
@@ -78,7 +80,7 @@ impl<M: Mcu + Send + 'static> Runtime<M> {
     pub async fn wfi(caller: &mut Caller<'_, Runtime<M>>) -> Result<(), RuntimeError> {
         Runtime::<M>::meter(caller)?;
 
-        // Put MCU to sleep
+        tracing::debug!(target: target::HARDWARE, "WFI: entering sleep");
         {
             let mut state = caller
                 .data_mut()
@@ -120,6 +122,7 @@ impl<M: Mcu + Send + 'static> Runtime<M> {
             };
 
             if let Some(irq) = preempt {
+                tracing::debug!(target: target::HARDWARE, "WFI: woke on IRQ {irq}");
                 caller
                     .data_mut()
                     .state
@@ -140,7 +143,7 @@ impl<M: Mcu + Send + 'static> Runtime<M> {
 
     /// Dispatches an ISR: enters the interrupt, calls the exported `__isr_{irq}` handler, then exits.
     pub async fn interrupt(caller: &mut Caller<'_, Runtime<M>>, irq: u8) -> Result<(), RuntimeError> {
-        // Entering ISR.
+        tracing::debug!(target: target::HARDWARE, "ISR enter: __isr_{irq}");
         {
             let runtime = caller.data_mut();
             let mut state = runtime
@@ -164,7 +167,7 @@ impl<M: Mcu + Send + 'static> Runtime<M> {
             .await
             .map_err(RuntimeError::Trap)?;
 
-        // Exiting ISR.
+        tracing::debug!(target: target::HARDWARE, "ISR exit: __isr_{irq}");
         {
             let runtime = caller.data_mut();
             let mut state = runtime

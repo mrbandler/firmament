@@ -2,12 +2,12 @@
 
 ## Runtime
 
-- [ ] Tracing migration -- replace all `println!`/`eprintln!` with `tracing` macros
-- [ ] Code cleanup -- collapse repeated lock patterns into helpers, clean up unused import warnings
+- [x] Tracing migration -- replace all `println!`/`eprintln!` with `tracing` macros
+- [x] Code cleanup -- collapse repeated lock patterns into helpers, clean up unused import warnings
 - [ ] Stats/diagnostics query -- add a `Command::Stats` or similar for querying compute load and cycle usage from the Handle
 - [ ] Graceful clean exit -- handle firmware returning from `_start` cleanly (currently breaks the loop but doesn't signal the Handle properly)
-- [ ] RuntimeError cleanup -- evaluate `ComputeExhausted` (unreachable with u64::MAX fuel), `WriteError::ValueOverflow` (no longer used in imports)
-- [ ] Firmware visibility -- `engine` and `module` on `Image` are pub, consider restricting
+- [x] RuntimeError cleanup -- remove unused `WriteError::ValueOverflow` variant
+- [x] Firmware visibility -- `engine` and `module` on `Image` are already private
 
 ## Testing
 

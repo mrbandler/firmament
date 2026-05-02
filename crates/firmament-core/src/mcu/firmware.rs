@@ -88,7 +88,7 @@ impl<M: Mcu + Send + 'static> Firmware<M, Compiled> {
             };
         }
 
-        link_func!("debug_log", imports::debug_log::<M>, ptr: u32, len: u32);
+        link_func!("debug_log", imports::log::<M>, ptr: u32, len: u32);
         link_func!("wfi", imports::wfi::<M>);
         link_func!("read_volatile_u8", imports::read_volatile_u8::<M>, addr: u32);
         link_func!("read_volatile_u16", imports::read_volatile_u16::<M>, addr: u32);

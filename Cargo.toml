@@ -20,6 +20,7 @@ bon = "3.6.3"
 miette = { version = "7.6.0", features = ["fancy"] }
 thiserror = "2.0.18"
 tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [workspace.lints.rust]
 unsafe_code = "deny"
