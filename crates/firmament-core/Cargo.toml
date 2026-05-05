@@ -13,7 +13,7 @@ miette.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
-tokio = { version = "1.52.1", features = ["rt", "rt-multi-thread", "sync", "macros"] }
+tokio = { version = "1.52.2", features = ["rt", "rt-multi-thread", "sync", "macros"] }
 wasmtime = "44.0.1"
 
 [lints]
